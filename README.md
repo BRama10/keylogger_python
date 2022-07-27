@@ -15,3 +15,9 @@
 * Created installer
   * run install.py to set keylogger into start-up file
   * deletes rest of residual files, leaving no trace except for possibly in quick access  
+
+
+## v1.5.3
+
+* Stabilized text file to which reports are being made
+ * Checks if text file there, if not, creates a new one
