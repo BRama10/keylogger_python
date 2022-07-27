@@ -13,5 +13,5 @@
 ## v1.2.1
 
 * Created installer
- * run install.py to set keylogger into start-up file
- * deletes rest of residual files, leaving no trace except for possibly in quick access  
+  * run install.py to set keylogger into start-up file
+  * deletes rest of residual files, leaving no trace except for possibly in quick access  
